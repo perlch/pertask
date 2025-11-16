@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>perlit plans</title>
+<style>
+    :root {
+        --bg: #0a0a0a;
+        --fg: #ffffff;
+        --accent: #7a00ff;
+        --accent-soft: #9a40ff;
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg);
+        font-family: "Inter", sans-serif;
+        color: var(--fg);
+        overflow-x: hidden;
+    }
+
+    header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 18px 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0));
+        backdrop-filter: blur(6px);
+        z-index: 10;
+    }
+
+    header .logo, header .link {
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+        cursor: pointer;
+        user-select: none;
+        transition: opacity .25s ease;
+    }
+
+    header .link:hover {
+        opacity: .6;
+    }
+
+    .grid {
+        display: grid;
+        gap: 22px;
+        padding: 120px 28px 40px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .card {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1/0.5;
+        background: #111;
+        border-radius: 16px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid rgba(122, 0, 255, 0.35);
+        transition: transform .35s cubic-bezier(.25,.8,.25,1),
+                    box-shadow .35s cubic-bezier(.25,.8,.25,1),
+                    border-color .35s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 0 22px rgba(122,0,255,0.35);
+        border-color: var(--accent-soft);
+    }
+
+    .card-bg {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        filter: blur(2px) brightness(0.55);
+        transform: scale(1.12);
+        z-index: 1;
+    }
+
+    .card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.2));
+        z-index: 2;
+    }
+
+    .card span {
+        position: absolute;
+        bottom: 12px;
+        left: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: .5px;
+        color: var(--fg);
+        text-shadow: 0 0 6px rgba(122,0,255,0.7);
+        z-index: 3;
+    }
+
+    .glow {
+        position: fixed;
+        pointer-events: none;
+        inset: 0;
+        background: radial-gradient(circle at 50% 50%, rgba(122,0,255,0.2) 0%, transparent 60%);
+        opacity: .25;
+        animation: pulse 6s ease-in-out infinite;
+        z-index: -1;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: .25; }
+        50% { transform: scale(1.15); opacity: .38; }
+        100% { transform: scale(1); opacity: .25; }
+    }
+
+    .completed {
+        text-decoration: line-through;
+        color: gray;
+    }
+</style>
+</head>
+
+<body>
+<header>
+    <div class="logo">pertask</div>
+    <div class="link" onclick="window.open('https://github.com/perlch', '_blank')">search me</div>
+</header>
+
+<div class="glow"></div>
+
+<div class="grid" id="projectGrid"></div>
+
+<script>
+let projects = JSON.parse(localStorage.getItem("projects")) || [];
+
+const grid = document.getElementById("projectGrid");
+
+const addCard = document.createElement("div");
+addCard.className = "card";
+addCard.style.cursor = "default";
+addCard.onclick = () => {
+    const title = prompt("Enter task title:");
+    const task = prompt("Enter task description:");
+    if (title && task) {
+        const newProject = {
+            name: title,
+            description: task,
+            completed: false
+        };
+        projects.push(newProject);
+        localStorage.setItem("projects", JSON.stringify(projects));
+        renderProjects();
+    }
+};
+
+const addCardBg = document.createElement("div");
+addCardBg.className = "card-bg";
+addCardBg.style.background = "rgba(0, 0, 0, 0.5)";
+const addCardTitle = document.createElement("span");
+addCardTitle.textContent = "Add Task";
+
+addCard.appendChild(addCardBg);
+addCard.appendChild(addCardTitle);
+grid.appendChild(addCard);
+
+function renderProjects() {
+    grid.innerHTML = "";
+    grid.appendChild(addCard);
+
+    projects.forEach((project, index) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.onclick = () => toggleCompletion(index);
+
+        const bg = document.createElement("div");
+        bg.className = "card-bg";
+
+        const title = document.createElement("span");
+        title.textContent = project.name;
+        if (project.completed) {
+            title.classList.add("completed");
+        }
+
+        card.appendChild(bg);
+        card.appendChild(title);
+        grid.appendChild(card);
+    });
+}
+
+function toggleCompletion(index) {
+    projects[index].completed = !projects[index].completed;
+    localStorage.setItem("projects", JSON.stringify(projects));
+    renderProjects();
+}
+
+renderProjects();
+</script>
+
+</body>
+</html>
